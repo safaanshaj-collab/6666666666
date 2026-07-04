@@ -1,0 +1,99 @@
+/* ── Upload page specific styles ───────────────────────────────────────── */
+
+.upload-layout {
+  display: grid;
+  grid-template-columns: 1fr 340px;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+/* ── Drop zone ─────────────────────────────────────────────────────────── */
+.drop-zone {
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color .15s, background .15s;
+  position: relative;
+  margin-bottom: 1.5rem;
+  min-height: 160px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.drop-zone:hover,
+.drop-zone:focus,
+.drop-zone.dragover {
+  border-color: var(--accent);
+  background: var(--accent-subtle);
+}
+.drop-zone.dragover { border-style: solid; }
+
+.drop-zone-inner { pointer-events: none; }
+.drop-icon { font-size: 2.5rem; margin-bottom: .5rem; color: var(--text-muted); }
+.drop-title { font-size: 1.05rem; font-weight: 600; margin-bottom: .3rem; }
+.drop-subtitle { color: var(--text-secondary); font-size: .9rem; margin-bottom: .5rem; }
+.drop-hint { font-size: .78rem; color: var(--text-muted); }
+
+.drop-zone-selected {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+.file-icon { font-size: 2.2rem; flex-shrink: 0; }
+.file-info { flex: 1; text-align: left; min-width: 0; }
+.file-name { font-weight: 600; font-size: .9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.file-size { font-size: .8rem; }
+
+/* ── Form sections ────────────────────────────────────────────────────── */
+.form-section { margin-bottom: 1.5rem; }
+.form-section-title {
+  font-size: .9rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: var(--text-muted);
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: .85rem;
+}
+.form-actions { padding-top: .5rem; }
+
+/* ── Icon upload ──────────────────────────────────────────────────────── */
+.icon-upload-row { display: flex; align-items: center; gap: 1.25rem; }
+.icon-preview-box {
+  width: 80px; height: 80px;
+  border: 2px dashed var(--border);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.icon-preview-placeholder { font-size: 2rem; color: var(--text-muted); }
+.icon-preview { width: 100%; height: 100%; object-fit: cover; }
+.icon-upload-info { display: flex; flex-direction: column; gap: .4rem; }
+
+/* ── Upload progress ──────────────────────────────────────────────────── */
+.upload-progress { margin: 1rem 0; }
+
+/* ── Tips card ─────────────────────────────────────────────────────────── */
+.tips-card { position: sticky; top: 80px; }
+
+/* ── Responsive ────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .upload-layout { grid-template-columns: 1fr; }
+  .tips-card { position: static; }
+}
+@media (max-width: 560px) {
+  .form-grid { grid-template-columns: 1fr; }
+}

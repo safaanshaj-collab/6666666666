@@ -1,0 +1,161 @@
+{% extends "base.html" %}
+{% block extra_head %}
+<link rel="stylesheet" href="/static/css/upload.css" />
+{% end %}
+
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">New Build</h1>
+</div>
+
+<div class="upload-layout">
+  <!-- ── Upload form ─────────────────────────────────────────────────── -->
+  <form id="uploadForm" class="card upload-card" enctype="multipart/form-data">
+
+    <!-- Drop zone -->
+    <div class="drop-zone" id="dropZone" tabindex="0" role="button"
+         aria-label="Drop zone: click or drag to upload a .py or .zip file">
+      <div class="drop-zone-inner" id="dropZoneContent">
+        <div class="drop-icon">⬆</div>
+        <div class="drop-title">Drag & Drop your file here</div>
+        <div class="drop-subtitle">or <span class="link-primary">click to browse</span></div>
+        <div class="drop-hint">Supported: .py · .zip &nbsp;|&nbsp; Max 100 MB</div>
+      </div>
+      <div class="drop-zone-selected hidden" id="fileSelected">
+        <div class="file-icon" id="fileIcon">📄</div>
+        <div class="file-info">
+          <div class="file-name" id="fileName">–</div>
+          <div class="file-size text-muted" id="fileSize">–</div>
+        </div>
+        <button type="button" class="btn btn-xs btn-ghost" id="removeFile">✕ Remove</button>
+      </div>
+      <input type="file" id="fileInput" name="file" accept=".py,.zip" class="visually-hidden" />
+    </div>
+
+    <!-- ── App details ─────────────────────────────────────────────── -->
+    <div class="form-section">
+      <h3 class="form-section-title">App Details</h3>
+      <div class="form-grid">
+        <div class="form-field">
+          <label for="app_name" class="form-label">App Name <span class="required">*</span></label>
+          <input type="text" id="app_name" name="app_name"
+                 class="form-input" value="MyApp"
+                 required pattern="[a-zA-Z][a-zA-Z0-9 _\-]{0,49}"
+                 placeholder="My Awesome App" />
+          <div class="form-hint">Display name on the device.</div>
+        </div>
+        <div class="form-field">
+          <label for="package_name" class="form-label">Package Name <span class="required">*</span></label>
+          <input type="text" id="package_name" name="package_name"
+                 class="form-input" value="org.example.myapp"
+                 required
+                 placeholder="com.yourname.myapp" />
+          <div class="form-hint">Reverse-domain notation (e.g. <code>com.example.app</code>).</div>
+        </div>
+        <div class="form-field">
+          <label for="version_name" class="form-label">Version Name</label>
+          <input type="text" id="version_name" name="version_name"
+                 class="form-input" value="1.0" placeholder="1.0.0" />
+        </div>
+        <div class="form-field">
+          <label for="version_code" class="form-label">Version Code</label>
+          <input type="number" id="version_code" name="version_code"
+                 class="form-input" value="1" min="1" />
+          <div class="form-hint">Integer, increments with each release.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── App Icon ────────────────────────────────────────────────── -->
+    <div class="form-section">
+      <h3 class="form-section-title">App Icon <span class="badge badge--optional">Optional</span></h3>
+      <div class="icon-upload-row">
+        <div class="icon-preview-box" id="iconPreviewBox">
+          <span class="icon-preview-placeholder">?</span>
+          <img id="iconPreview" class="icon-preview hidden" alt="Icon preview" />
+        </div>
+        <div class="icon-upload-info">
+          <label for="iconInput" class="btn btn-ghost">Choose Icon</label>
+          <input type="file" id="iconInput" name="icon"
+                 accept=".png,.jpg,.jpeg" class="visually-hidden" />
+          <div class="form-hint">PNG recommended, min 192×192 px.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Splash Screen ───────────────────────────────────────────── -->
+    <div class="form-section">
+      <h3 class="form-section-title">Splash Screen <span class="badge badge--optional">Optional</span></h3>
+      <div class="icon-upload-row">
+        <div class="icon-preview-box" id="splashPreviewBox">
+          <span class="icon-preview-placeholder" id="splashPlaceholder">🖼</span>
+          <img id="splashPreview" class="icon-preview hidden" alt="Splash preview" />
+        </div>
+        <div class="icon-upload-info">
+          <label for="splashInput" class="btn btn-ghost">Choose Splash Image</label>
+          <input type="file" id="splashInput" name="splash"
+                 accept=".png,.jpg,.jpeg" class="visually-hidden" />
+          <div class="form-hint">PNG recommended, 720×1280 px (portrait). Shown at app launch.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Notification ────────────────────────────────────────────── -->
+    <div class="form-section">
+      <h3 class="form-section-title">Email Notification <span class="badge badge--optional">Optional</span></h3>
+      <div class="form-field">
+        <input type="email" id="email" name="email"
+               class="form-input" placeholder="you@example.com" />
+        <div class="form-hint">We'll email you when the build completes.</div>
+      </div>
+    </div>
+
+    <!-- ── Upload progress ──────────────────────────────────────────── -->
+    <div class="upload-progress hidden" id="uploadProgress">
+      <div class="progress-label">
+        <span>Uploading…</span>
+        <span id="uploadPct">0%</span>
+      </div>
+      <div class="progress-bar-track">
+        <div class="progress-bar-fill" id="uploadBar" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- ── Errors ────────────────────────────────────────────────────── -->
+    <div class="alert alert--error hidden" id="uploadError"></div>
+
+    <!-- ── Submit ────────────────────────────────────────────────────── -->
+    <div class="form-actions">
+      <button type="submit" class="btn btn-primary btn-lg" id="submitBtn" disabled>
+        <span class="btn-text">⬆ Upload &amp; Build</span>
+        <span class="btn-spinner hidden">⟳</span>
+      </button>
+    </div>
+  </form>
+
+  <!-- ── Sidebar tips ───────────────────────────────────────────────── -->
+  <aside class="upload-tips">
+    <div class="card tips-card">
+      <h3 class="tips-title">Requirements</h3>
+      <ul class="tips-list">
+        <li>Your project must use <strong>Kivy</strong> or <strong>KivyMD</strong> as the UI framework.</li>
+        <li>Include a <code>main.py</code> at the project root.</li>
+        <li>List dependencies in <code>requirements.txt</code> inside the ZIP.</li>
+        <li>Keep project size under 100 MB.</li>
+        <li>Avoid network calls, OS commands, or relative import hacks.</li>
+      </ul>
+      <div class="tips-divider"></div>
+      <h3 class="tips-title">Example ZIP Structure</h3>
+      <pre class="code-block">myapp.zip
+├── main.py
+├── requirements.txt
+├── assets/
+│   └── logo.png
+└── screens/
+    └── home.py</pre>
+    </div>
+  </aside>
+</div>
+
+<script src="/static/js/upload.js"></script>
+{% end %}

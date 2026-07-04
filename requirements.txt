@@ -1,0 +1,17 @@
+# Py2APK – Python dependencies
+# Install with: pip install -r requirements.txt
+
+# ── Web framework ──────────────────────────────────────────────────────────
+tornado==6.4.1
+
+# ── Async utilities ────────────────────────────────────────────────────────
+# (No extra async libs required; Tornado ships with its own IOLoop)
+
+# ── Security & hashing ────────────────────────────────────────────────────
+# Using Python stdlib: hashlib, hmac, secrets
+
+# ── Optional: email ───────────────────────────────────────────────────────
+# Using Python stdlib: smtplib, email
+
+# ── Type hints support ────────────────────────────────────────────────────
+# Python 3.11+ has these built in; no extra package needed

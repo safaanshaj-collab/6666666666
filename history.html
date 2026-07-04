@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Build History</h1>
+  <a href="/upload" class="btn btn-primary">+ New Build</a>
+</div>
+
+<!-- ── Filters ────────────────────────────────────────────────────────── -->
+<div class="card filter-card">
+  <form id="filterForm" class="filter-row">
+    <div class="filter-field">
+      <input type="search" id="searchInput" name="search" class="form-input"
+             placeholder="Search by name or package…" />
+    </div>
+    <div class="filter-field filter-field--select">
+      <select id="statusFilter" name="status" class="form-input">
+        <option value="">All statuses</option>
+        <option value="pending">Pending</option>
+        <option value="queued">Queued</option>
+        <option value="building">Building</option>
+        <option value="success">Success</option>
+        <option value="failed">Failed</option>
+        <option value="cancelled">Cancelled</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Search</button>
+    <button type="button" class="btn btn-ghost" id="resetFilter">Reset</button>
+  </form>
+</div>
+
+<!-- ── Results ────────────────────────────────────────────────────────── -->
+<div class="card">
+  <div class="table-wrap">
+    <table class="table" id="buildsTable">
+      <thead>
+        <tr>
+          <th>App</th>
+          <th>Package</th>
+          <th>Status</th>
+          <th>Created</th>
+          <th>Duration</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="buildsBody">
+        <tr><td colspan="6" class="text-center text-muted">Loading…</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" id="pagination"></div>
+</div>
+
+<script>
+(function() {
+  let currentPage = 1;
+  let totalPages  = 1;
+
+  function statusBadge(status) {
+    return `<span class="badge badge--${status}">${status}</span>`;
+  }
+
+  function renderRows(builds) {
+    const tbody = document.getElementById('buildsBody');
+    if (!builds.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No builds found.</td></tr>';
+      return;
+    }
+    tbody.innerHTML = builds.map(b => {
+      const actions = [];
+      actions.push(`<a href="/builds/${b.id}" class="btn btn-xs">Logs</a>`);
+      if (b.status === 'success')
+        actions.push(`<a href="/download/${b.id}" class="btn btn-xs btn-success">⬇ APK</a>`);
+      if (b.status === 'failed' || b.status === 'cancelled')
+        actions.push(`<button class="btn btn-xs btn-ghost retry-btn" data-id="${b.id}">⟳ Retry</button>`);
+      actions.push(`<button class="btn btn-xs btn-danger delete-btn" data-id="${b.id}">🗑</button>`);
+      return `<tr>
+        <td>
+          <a href="/builds/${b.id}" class="link-primary">${b.app_name || 'MyApp'}</a>
+          <div class="text-muted text-sm">${b.original_filename || ''}</div>
+        </td>
+        <td class="text-mono text-sm">${b.package_name || ''}</td>
+        <td>${statusBadge(b.status)}</td>
+        <td class="text-sm text-muted">${(b.created_at||'').slice(0,16)}</td>
+        <td class="text-sm">${b.duration_seconds ? b.duration_seconds+'s' : '–'}</td>
+        <td><div class="action-buttons">${actions.join('')}</div></td>
+      </tr>`;
+    }).join('');
+
+    // Delete handlers
+    tbody.querySelectorAll('.delete-btn').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        if (!confirm('Delete this build and all associated files?')) return;
+        const id = this.dataset.id;
+        const r = await fetch(`/api/builds/${id}`, { method: 'DELETE' });
+        if (r.ok) loadPage(currentPage);
+        else { const e = await r.json(); alert(e.error || 'Delete failed'); }
+      });
+    });
+
+    // Retry handlers
+    tbody.querySelectorAll('.retry-btn').forEach(btn => {
+      btn.addEventListener('click', async function() {
+        const id = this.dataset.id;
+        const r = await fetch(`/api/builds/${id}/retry`, { method: 'POST' });
+        if (r.ok) { loadPage(currentPage); }
+        else { const e = await r.json(); alert(e.error || 'Retry failed'); }
+      });
+    });
+  }
+
+  function renderPagination(page, pages) {
+    const el = document.getElementById('pagination');
+    let html = '';
+    if (pages <= 1) { el.innerHTML = ''; return; }
+    if (page > 1) html += `<button class="btn btn-xs btn-ghost page-btn" data-page="${page-1}">‹ Prev</button>`;
+    for (let p = Math.max(1, page-2); p <= Math.min(pages, page+2); p++) {
+      html += `<button class="btn btn-xs ${p===page?'btn-primary':'btn-ghost'} page-btn" data-page="${p}">${p}</button>`;
+    }
+    if (page < pages) html += `<button class="btn btn-xs btn-ghost page-btn" data-page="${page+1}">Next ›</button>`;
+    el.innerHTML = html;
+    el.querySelectorAll('.page-btn').forEach(b => b.addEventListener('click', () => loadPage(+b.dataset.page)));
+  }
+
+  async function loadPage(page) {
+    currentPage = page;
+    const search = document.getElementById('searchInput').value;
+    const status = document.getElementById('statusFilter').value;
+    const qs = new URLSearchParams({ page, page_size: 20, search, status }).toString();
+    const r = await fetch(`/api/builds?${qs}`);
+    const data = await r.json();
+    totalPages = data.pages || 1;
+    renderRows(data.builds || []);
+    renderPagination(page, totalPages);
+  }
+
+  document.getElementById('filterForm').addEventListener('submit', e => {
+    e.preventDefault();
+    loadPage(1);
+  });
+  document.getElementById('resetFilter').addEventListener('click', () => {
+    document.getElementById('searchInput').value = '';
+    document.getElementById('statusFilter').value = '';
+    loadPage(1);
+  });
+
+  loadPage(1);
+})();
+</script>
+{% end %}

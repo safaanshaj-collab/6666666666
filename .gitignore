@@ -1,0 +1,42 @@
+# ── Python ──────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+
+# ── Py2APK data ─────────────────────────────────────────────
+data/
+*.db
+*.db-shm
+*.db-wal
+
+# ── Docker ──────────────────────────────────────────────────
+.docker/
+
+# ── Secrets ─────────────────────────────────────────────────
+.env
+*.pem
+*.key
+
+# ── IDE / OS ─────────────────────────────────────────────────
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# ── Logs ────────────────────────────────────────────────────
+*.log
+
+# ── Nginx SSL certs (generate separately) ────────────────────
+nginx/ssl/

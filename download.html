@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Download APK</h1>
+</div>
+
+<div class="download-layout">
+  <div class="card download-card">
+    <div class="download-success-icon">✓</div>
+    <h2 class="download-title">Build Successful!</h2>
+    <p class="download-subtitle">
+      Your APK for <strong>{{ build.get('app_name', 'MyApp') }}</strong> is ready.
+    </p>
+
+    <div class="download-meta">
+      <div class="meta-row">
+        <span class="meta-label">Package</span>
+        <span class="meta-value text-mono">{{ build.get('package_name', '') }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Version</span>
+        <span class="meta-value">{{ build.get('version_name', '1.0') }} (code {{ build.get('version_code', 1) }})</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Build ID</span>
+        <span class="meta-value text-mono">{{ build['id'][:8] }}</span>
+      </div>
+      <div class="meta-row">
+        <span class="meta-label">Completed</span>
+        <span class="meta-value">{{ build.get('completed_at','')[:16] }}</span>
+      </div>
+      {% if build.get('duration_seconds') %}
+      <div class="meta-row">
+        <span class="meta-label">Build Time</span>
+        <span class="meta-value">{{ build['duration_seconds'] }}s</span>
+      </div>
+      {% end %}
+    </div>
+
+    <a href="/api/builds/{{ build['id'] }}/download"
+       class="btn btn-primary btn-lg download-btn"
+       id="downloadBtn">
+      ⬇ Download APK
+    </a>
+    <div class="download-actions">
+      <a href="/builds/{{ build['id'] }}" class="link-subtle">View Build Logs</a>
+      &nbsp;·&nbsp;
+      <a href="/upload" class="link-subtle">New Build</a>
+    </div>
+  </div>
+
+  <div class="card install-card">
+    <h3 class="tips-title">Install on Your Device</h3>
+    <ol class="install-steps">
+      <li>Transfer the APK to your Android device (USB, email, cloud).</li>
+      <li>On the device, open <strong>Settings → Security</strong> and enable <em>Install from Unknown Sources</em>.</li>
+      <li>Tap the APK file in your file manager and follow the prompts.</li>
+      <li>Launch the app from your home screen or app drawer.</li>
+    </ol>
+    <div class="alert alert--info mt-2">
+      Debug APKs are unsigned. To distribute on the Play Store you must sign the APK with a release keystore.
+    </div>
+  </div>
+</div>
+{% end %}

@@ -1,0 +1,103 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <h1 class="page-title">Settings</h1>
+</div>
+
+<div class="settings-layout">
+  <div class="card settings-card">
+    <h2 class="section-title">Server Configuration</h2>
+    <div class="settings-grid">
+      <div class="setting-row">
+        <div class="setting-label">Port</div>
+        <div class="setting-value"><code>{{ config.PORT }}</code></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Debug Mode</div>
+        <div class="setting-value">
+          <span class="badge badge--{{ 'success' if config.DEBUG else 'failed' }}">
+            {{ 'ON' if config.DEBUG else 'OFF' }}
+          </span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Max Upload Size</div>
+        <div class="setting-value"><code>{{ config.MAX_UPLOAD_SIZE // 1048576 }} MB</code></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Authentication</div>
+        <div class="setting-value">
+          <span class="badge badge--{{ 'success' if config.ENABLE_AUTH else 'pending' }}">
+            {{ 'Enabled' if config.ENABLE_AUTH else 'Disabled' }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+    <h2 class="section-title">Build Configuration</h2>
+    <div class="settings-grid">
+      <div class="setting-row">
+        <div class="setting-label">Docker Image</div>
+        <div class="setting-value"><code>{{ config.DOCKER_BUILDER_IMAGE }}</code></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Memory Limit</div>
+        <div class="setting-value"><code>{{ config.DOCKER_MEMORY_LIMIT }}</code></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">CPU Limit</div>
+        <div class="setting-value"><code>{{ config.DOCKER_CPU_LIMIT }} vCPU(s)</code></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Build Timeout</div>
+        <div class="setting-value"><code>{{ config.BUILD_TIMEOUT }}s</code></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Max Concurrent Builds</div>
+        <div class="setting-value"><code>{{ config.MAX_CONCURRENT_BUILDS }}</code></div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+    <h2 class="section-title">Storage &amp; Cleanup</h2>
+    <div class="settings-grid">
+      <div class="setting-row">
+        <div class="setting-label">Build Expiry</div>
+        <div class="setting-value"><code>{{ config.BUILD_EXPIRY_DAYS }} days</code></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">Upload Directory</div>
+        <div class="setting-value"><code>{{ config.UPLOAD_DIR }}</code></div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">APK Directory</div>
+        <div class="setting-value"><code>{{ config.APK_DIR }}</code></div>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+    <h2 class="section-title">Email Notifications</h2>
+    <div class="settings-grid">
+      <div class="setting-row">
+        <div class="setting-label">SMTP Host</div>
+        <div class="setting-value">
+          {% if config.SMTP_HOST %}
+            <code>{{ config.SMTP_HOST }}:{{ config.SMTP_PORT }}</code>
+          {% else %}
+            <span class="text-muted">Not configured</span>
+          {% end %}
+        </div>
+      </div>
+      <div class="setting-row">
+        <div class="setting-label">From Address</div>
+        <div class="setting-value"><code>{{ config.SMTP_FROM }}</code></div>
+      </div>
+    </div>
+
+    <div class="alert alert--info mt-2">
+      All settings are configured via environment variables. Edit <code>.env</code> and restart the server to apply changes. See <code>README.md</code> for the full list of variables.
+    </div>
+  </div>
+</div>
+{% end %}

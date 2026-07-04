@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Build <code class="build-id-short">{{ build['id'][:8] }}</code></h1>
+    <div class="text-muted text-sm">{{ build.get('app_name','') }} · {{ build.get('package_name','') }}</div>
+  </div>
+  <div class="header-actions">
+    {% if build.get('status') == 'success' %}
+    <a href="/download/{{ build['id'] }}" class="btn btn-success">⬇ Download APK</a>
+    {% end %}
+    {% if build.get('status') in ('failed', 'cancelled') %}
+    <button class="btn btn-primary" id="retryBtn" data-id="{{ build['id'] }}">⟳ Retry Build</button>
+    {% end %}
+    {% if build.get('status') in ('pending', 'queued', 'building') %}
+    <button class="btn btn-danger" id="cancelBtn" data-id="{{ build['id'] }}">✕ Cancel</button>
+    {% end %}
+    <a href="/api/builds/{{ build['id'] }}/logs" class="btn btn-ghost">⬇ Download Logs</a>
+  </div>
+</div>
+
+<!-- ── Build Info Cards ──────────────────────────────────────────────── -->
+<div class="info-grid">
+  <div class="info-card">
+    <div class="info-label">Status</div>
+    <div class="info-value">
+      <span class="badge badge--{{ build.get('status','pending') }} badge--lg" id="buildStatus">
+        {{ build.get('status','pending') }}
+      </span>
+    </div>
+  </div>
+  <div class="info-card">
+    <div class="info-label">File</div>
+    <div class="info-value text-mono">{{ build.get('original_filename','') }}</div>
+  </div>
+  <div class="info-card">
+    <div class="info-label">Created</div>
+    <div class="info-value">{{ build.get('created_at','')[:16] }}</div>
+  </div>
+  <div class="info-card">
+    <div class="info-label">Duration</div>
+    <div class="info-value" id="buildDuration">
+      {% if build.get('duration_seconds') %}
+        {{ build['duration_seconds'] }}s
+      {% else %}–{% end %}
+    </div>
+  </div>
+  <div class="info-card">
+    <div class="info-label">Version</div>
+    <div class="info-value">{{ build.get('version_name','1.0') }} ({{ build.get('version_code',1) }})</div>
+  </div>
+  <div class="info-card">
+    <div class="info-label">Error</div>
+    <div class="info-value text-error text-sm" id="buildError">
+      {{ build.get('error_message','') or '–' }}
+    </div>
+  </div>
+</div>
+
+<!-- ── Progress Bar ──────────────────────────────────────────────────── -->
+<div class="build-progress-section" id="progressSection"
+     style="{{ 'display:none' if build.get('status') not in ('queued','building') else '' }}">
+  <div class="progress-label">
+    <span id="progressText">Building…</span>
+    <span id="progressPct"></span>
+  </div>
+  <div class="progress-bar-track progress-bar-animated">
+    <div class="progress-bar-fill progress-indeterminate" id="progressBar"></div>
+  </div>
+</div>
+
+<!-- ── Build Logs Terminal ────────────────────────────────────────────── -->
+<div class="card terminal-card">
+  <div class="terminal-header">
+    <span class="terminal-title">Build Logs</span>
+    <div class="terminal-controls">
+      <button class="btn btn-xs btn-ghost" id="autoScrollBtn" title="Toggle auto-scroll">⬇ Auto-scroll</button>
+      <button class="btn btn-xs btn-ghost" id="clearLogsBtn">✕ Clear</button>
+    </div>
+  </div>
+  <div class="terminal-body" id="terminal">
+    <div class="terminal-placeholder" id="terminalPlaceholder">
+      Waiting for build logs…
+    </div>
+  </div>
+</div>
+
+<script>
+const BUILD_ID = "{{ build['id'] }}";
+const INITIAL_STATUS = "{{ build.get('status', 'pending') }}";
+</script>
+<script src="/static/js/build.js"></script>
+{% end %}

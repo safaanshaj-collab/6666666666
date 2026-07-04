@@ -1,0 +1,88 @@
+version: "3.9"
+
+services:
+  # ── Py2APK Web Application ────────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: py2apk-web:latest
+    container_name: py2apk-web
+    restart: unless-stopped
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8080
+      - SECRET_KEY=${SECRET_KEY:-change-this-secret-key}
+      - DEBUG=${DEBUG:-false}
+      - ENABLE_AUTH=${ENABLE_AUTH:-false}
+      # Build settings
+      - DOCKER_BUILDER_IMAGE=py2apk-builder:latest
+      - DOCKER_MEMORY_LIMIT=${DOCKER_MEMORY_LIMIT:-4g}
+      - DOCKER_CPU_LIMIT=${DOCKER_CPU_LIMIT:-2}
+      - BUILD_TIMEOUT=${BUILD_TIMEOUT:-3600}
+      - MAX_CONCURRENT_BUILDS=${MAX_CONCURRENT_BUILDS:-2}
+      # Storage
+      - MAX_UPLOAD_SIZE=${MAX_UPLOAD_SIZE:-104857600}
+      - BUILD_EXPIRY_DAYS=${BUILD_EXPIRY_DAYS:-7}
+      # Email (optional)
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASS=${SMTP_PASS:-}
+      - SMTP_FROM=${SMTP_FROM:-noreply@py2apk.local}
+    volumes:
+      # Persistent data
+      - py2apk_data:/app/data
+      # Docker socket – required to spawn build containers
+      - /var/run/docker.sock:/var/run/docker.sock
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - py2apk_net
+    depends_on:
+      builder_init:
+        condition: service_completed_successfully
+
+  # ── Builder image initialiser ─────────────────────────────────────────────
+  # Builds the Android SDK image on first start (can take 20-30 min).
+  builder_init:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.builder
+    image: py2apk-builder:latest
+    # This service only builds the image; it exits immediately.
+    command: ["echo", "Builder image ready."]
+    networks:
+      - py2apk_net
+
+  # ── Nginx reverse proxy (optional, remove if not needed) ─────────────────
+  nginx:
+    image: nginx:alpine
+    container_name: py2apk-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - web
+    networks:
+      - py2apk_net
+    profiles:
+      - with-nginx   # only start with: docker compose --profile with-nginx up
+
+volumes:
+  py2apk_data:
+    driver: local
+
+networks:
+  py2apk_net:
+    driver: bridge
